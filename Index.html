@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Playlist Video Multiplatform</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #b2f0e8, #e8d4f0);
+      color: #333;
+    }
+    .container {
+      max-width: 700px;
+      margin: 30px auto;
+      background: #fff0f7;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #8b5cf6;
+    }
+    input, button {
+      font-size: 1rem;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      margin: 5px;
+    }
+    input {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #a5f3fc;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background-color: #67e8f9;
+    }
+    iframe {
+      width: 100%;
+      height: 360px;
+      border: none;
+      margin-top: 20px;
+      border-radius: 12px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .status {
+      margin-top: 15px;
+      text-align: center;
+      font-weight: bold;
+      color: #6366f1;
+    }
+    .history {
+      margin-top: 25px;
+    }
+    .history h2 {
+      font-size: 1.2rem;
+      color: #6b21a8;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+    .history ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    .history li {
+      background: #e0f7fa;
+      margin-bottom: 8px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📺 Playlist Video Multiplatform</h1>
+    <input type="text" id="videoURL" placeholder="Tempel URL Video (YouTube, Google Drive, TikTok*)">
+    <div class="controls">
+      <button onclick="playVideo()">▶️ Putar Video</button>
+      <button onclick="resetVideo()">🧹 Hapus</button>
+      <button onclick="toggleRepeat()">🔁 Mode Ulang</button>
+      <button onclick="toggleSleep()">😴 Mode Sleep</button>
+    </div>
+    <div class="status" id="modeStatus">Mode Ulang: Nonaktif | Mode Sleep: Nonaktif</div>
+    <iframe id="videoFrame" allowfullscreen></iframe>
+
+    <div class="history">
+      <h2>📜 Riwayat Video yang Diputar</h2>
+      <ul id="historyList"></ul>
+    </div>
+  </div>
+
+  <script>
+    let repeatMode = false;
+    let sleepMode = false;
+
+    function updateStatus() {
+      document.getElementById("modeStatus").innerText =
+        `Mode Ulang: ${repeatMode ? "Aktif" : "Nonaktif"} | Mode Sleep: ${sleepMode ? "Aktif" : "Nonaktif"}`;
+    }
+
+    function playVideo() {
+      const url = document.getElementById("videoURL").value.trim();
+      if (!url) return alert("Masukkan URL video terlebih dahulu.");
+
+      const iframe = document.getElementById("videoFrame");
+      const embedURL = convertToEmbed(url);
+      iframe.src = embedURL;
+
+      // Tambahkan ke riwayat
+      addToHistory(url);
+
+      // Matikan video otomatis setelah 10 menit jika sleepMode aktif
+      if (sleepMode) setTimeout(() => {
+        iframe.src = '';
+      }, 1000 * 60 * 10);
+    }
+
+    function convertToEmbed(url) {
+      if (url.includes("youtube.com") || url.includes("youtu.be")) {
+        const videoId = url.split("v=")[1]?.split("&")[0] || url.split("youtu.be/")[1];
+        return `https://www.youtube.com/embed/${videoId}`;
+      } else if (url.includes("drive.google.com")) {
+        const fileId = url.match(/[-\w]{25,}/);
+        return `https://drive.google.com/file/d/${fileId}/preview`;
+      } else if (url.includes("tiktok.com")) {
+        return `https://www.tiktok.com/embed/${extractTikTokID(url)}`;
+      }
+      return url;
+    }
+
+    function extractTikTokID(url) {
+      const match = url.match(/video\/(\d+)/);
+      return match ? match[1] : '';
+    }
+
+    function resetVideo() {
+      document.getElementById("videoURL").value = "";
+      document.getElementById("videoFrame").src = "";
+    }
+
+    function toggleRepeat() {
+      repeatMode = !repeatMode;
+      updateStatus();
+    }
+
+    function toggleSleep() {
+      sleepMode = !sleepMode;
+      updateStatus();
+    }
+
+    function addToHistory(url) {
+      const historyList = document.getElementById("historyList");
+      const li = document.createElement("li");
+      li.textContent = url;
+      historyList.prepend(li); // Tambahkan ke atas
+    }
+  </script>
+</body>
+</html>
